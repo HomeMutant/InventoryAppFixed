@@ -1,29 +1,87 @@
-﻿@model InventoryApp.Models.Order
+﻿@model InventoryApp.Models.Product
+
 @{
-    ViewData["Title"] = "Place Order";
-    var product = ViewBag.Product as InventoryApp.Models.Product;
+    ViewData["Title"] = "Create Order";
 }
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6">
-        <div class="card p-4 shadow">
-            <h4 class="mb-3">Order Product</h4>
+
+<div class="container mt-4">
+    <h2>Place Order</h2>
+
+    <div class="card p-4 shadow-sm">
+        <h4>Product Details</h4>
+        <hr />
+
+        <p><strong>Product Name:</strong> @Model.Name</p>
+        <p><strong>Category:</strong> @Model.Category</p>
+        <p>
+            <strong>Unit Price:</strong>
+            RM @Model.Price.ToString("N2")
+        </p>
+        <p>
+            <strong>Available Stock:</strong>
+            @Model.Quantity
+        </p>
+
+        <hr />
+
+        <h4>Order Information</h4>
+
+        <form asp-controller="Order"
+              asp-action="Create"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="productId"
+                   value="@Model.Id" />
 
             <div class="mb-3">
-                <strong>Product:</strong> @product?.Name <br />
-                <strong>Category:</strong> @product?.Category <br />
-                <strong>Price:</strong> @product?.Price.ToString("N0") PKR
+                <label class="form-label">Quantity</label>
+                <input type="number"
+                       name="quantity"
+                       id="quantity"
+                       class="form-control"
+                       min="1"
+                       max="@Model.Quantity"
+                       value="1"
+                       required />
             </div>
 
-            <form asp-action="Create" method="post">
-                @Html.AntiForgeryToken()
-                <input type="hidden" asp-for="ProductId" />
-                <div class="mb-3">
-                    <label class="form-label">Quantity</label>
-                    <input asp-for="Quantity" type="number" class="form-control" min="1" max="100" />
-                </div>
-                <button type="submit" class="btn btn-primary">Confirm Order</button>
-                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-            </form>
-        </div>
+            <div class="mb-3">
+                <label class="form-label">Notes (Optional)</label>
+                <textarea name="notes"
+                          class="form-control"
+                          rows="3"></textarea>
+            </div>
+
+            <p>
+                <strong>Total Price:</strong>
+                <span id="totalPrice">
+                    RM @Model.Price.ToString("N2")
+                </span>
+            </p>
+
+            <button type="submit" class="btn btn-primary">
+                Place Order
+            </button>
+        </form>
     </div>
 </div>
+
+<script>
+    const unitPrice = @Model.Price.ToString(
+                System.Globalization.CultureInfo.InvariantCulture
+        );
+
+    const quantityInput = document.getElementById("quantity");
+    const totalPrice = document.getElementById("totalPrice");
+
+    quantityInput.addEventListener("input", function () {
+        const quantity = Number(this.value) || 0;
+        const total = unitPrice * quantity;
+
+        totalPrice.textContent =
+            "RM " + total.toFixed(2);
+    });
+</script>

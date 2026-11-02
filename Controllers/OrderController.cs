@@ -14,6 +14,24 @@ namespace InventoryApp.Controllers
         public OrderController(AppDbContext db) => _db = db;
 
         [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _db.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+                return Unauthorized();
+
+            var orders = await _db.Orders
+                .Include(o => o.Product)
+                .Where(o => o.UserId == user.Id)
+                .OrderByDescending(o => o.OrderedAt)
+                .ToListAsync();
+
+            return View(orders);
+        }
         public async Task<IActionResult> Create(int id) // id = productId
         {
             var product = await _db.Products.FindAsync(id);
